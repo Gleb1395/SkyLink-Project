@@ -1,7 +1,8 @@
 from django.contrib import admin
 
-from airport.models import Route, Flight, Airport, Airplane, AirplaneType, Crew, Ticket, Order, TicketClass, Seat, \
-    FlightSeat, Tariff
+from airport.models import (Airplane, AirplaneType, Airport, Crew, Flight,
+                            FlightSeat, Order, Route, Seat, Tariff, Ticket,
+                            TicketClass)
 
 
 @admin.register(Flight)
@@ -52,7 +53,11 @@ class CrewAdmin(admin.ModelAdmin):
 
 @admin.register(Ticket)
 class TicketAdmin(admin.ModelAdmin):
-    list_display = ("flight_seat", "order", "price",)
+    list_display = (
+        "flight_seat",
+        "order",
+        "price",
+    )
 
 
 @admin.register(TicketClass)

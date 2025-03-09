@@ -1,12 +1,10 @@
 import random
 
 from django.contrib.auth import get_user_model
-
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
-
-from django.utils.translation import gettext as _
 from django.db import models
+from django.utils.translation import gettext as _
 from faker import Faker
 
 from airport.manager import FlightManager
@@ -21,7 +19,10 @@ class Flight(models.Model):
 
     route = models.ForeignKey("Route", on_delete=models.CASCADE, related_name="flight_route")
     airplane = models.ForeignKey("Airplane", on_delete=models.CASCADE, related_name="flight_airplane")
-    crew = models.ManyToManyField("Crew", related_name="flight_crew", )
+    crew = models.ManyToManyField(
+        "Crew",
+        related_name="flight_crew",
+    )
     departure_time = models.DateTimeField()
     arrival_time = models.DateTimeField()
     status = models.SmallIntegerField(choices=Status.choices, default=Status.SCHEDULED)
@@ -84,17 +85,19 @@ class Airplane(models.Model):
     def create_test_airplane() -> list["Airplane"]:
         type_airplane = AirplaneType.objects.all()
         name_airplane = ["Boeing 737", "Airbus A320", "Embraer E175", "CRJ-900", "Boeing 747-8F", "Airbus A330-200F"]
-        airplanes = [
-            Airplane(name=name, airplane_type=random.choice(type_airplane)) for name in name_airplane
-        ]
+        airplanes = [Airplane(name=name, airplane_type=random.choice(type_airplane)) for name in name_airplane]
         return Airplane.objects.bulk_create(airplanes)
 
 
 class Seat(models.Model):
     airplane = models.ForeignKey("Airplane", on_delete=models.CASCADE, related_name="seats_airplane")
-    seat = models.SmallIntegerField(validators=[MinValueValidator(1)], )
+    seat = models.SmallIntegerField(
+        validators=[MinValueValidator(1)],
+    )
     row = models.CharField(max_length=1)
-    seat_type = models.CharField(max_length=50, )
+    seat_type = models.CharField(
+        max_length=50,
+    )
     ticket_class = models.ForeignKey("TicketClass", on_delete=models.CASCADE, related_name="seat")
 
     class Meta:
@@ -132,9 +135,7 @@ class AirplaneType(models.Model):
     @staticmethod
     def create_airplane_type() -> list["AirplaneType"]:
         types = ["Airliner", "Regional Jet", "Freighter"]
-        airplane_types = [
-            AirplaneType(name=name) for name in types
-        ]
+        airplane_types = [AirplaneType(name=name) for name in types]
         return AirplaneType.objects.bulk_create(airplane_types)
 
 
@@ -152,9 +153,7 @@ class Crew(models.Model):
     @staticmethod
     def create_test_crew(count: int) -> list["Crew"]:
         fake = Faker()
-        crew_members = [
-            Crew(first_name=fake.first_name(), last_name=fake.last_name()) for _ in range(count)
-        ]
+        crew_members = [Crew(first_name=fake.first_name(), last_name=fake.last_name()) for _ in range(count)]
         return Crew.objects.bulk_create(crew_members)
 
 
@@ -173,7 +172,10 @@ class Ticket(models.Model):
 
 
 class TicketClass(models.Model):
-    name = models.CharField(max_length=120, unique=True, )
+    name = models.CharField(
+        max_length=120,
+        unique=True,
+    )
 
     class Meta:
         verbose_name = _("Ticket Class")
@@ -205,4 +207,4 @@ class Order(models.Model):
         verbose_name_plural = _("Orders")
 
     def __str__(self):
-        return f"{self.created_at} {self.user}"
+        return f"Order date: {self.created_at}, User:{self.user}"
