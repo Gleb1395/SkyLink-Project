@@ -1,9 +1,8 @@
-from django.db import transaction, IntegrityError
-
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError, transaction
 from django.test import TestCase, TransactionTestCase
 
-from airport.models import Crew, Order, TicketClass, Tariff
+from airport.models import Crew, Order, Tariff, TicketClass
 
 
 class TestOrder(TestCase):
@@ -25,12 +24,16 @@ class TestTariff(TestCase):
         self.ticket_class = TicketClass.objects.create(name="Test TicketClass")
         self.test_code = "A"
         self.test_name = "Test Tariff"
-        self.tariff_test = Tariff.objects.create(code=self.test_code, name=self.test_name, ticket_class=self.ticket_class)
+        self.tariff_test = Tariff.objects.create(
+            code=self.test_code, name=self.test_name, ticket_class=self.ticket_class
+        )
 
-        self.assertEqual(str(self.tariff_test),
-                         f"Tariff code: {self.test_code}, "
-                         f"Tariff name: {self.test_name}, "
-                         f"Ticket class: {self.ticket_class.name}")
+        self.assertEqual(
+            str(self.tariff_test),
+            f"Tariff code: {self.test_code}, "
+            f"Tariff name: {self.test_name}, "
+            f"Ticket class: {self.ticket_class.name}",
+        )
 
     def test_tariff_uniq(self):
         with self.assertRaises(IntegrityError):
