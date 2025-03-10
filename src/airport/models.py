@@ -10,7 +10,7 @@ from faker import Faker
 from airport.manager import FlightManager
 
 
-class Flight(models.Model):
+class Flight(models.Model): # TODO make testcase
     class Status(models.IntegerChoices):
         SCHEDULED = 1
         EN_ROUTE = 2
@@ -41,7 +41,7 @@ class Flight(models.Model):
             raise ValidationError(_("Departure time must be earlier than Arrival time"))
 
 
-class Route(models.Model):
+class Route(models.Model): # TODO make testcase
     source = models.ForeignKey("Airport", on_delete=models.CASCADE, related_name="route_source")
     destination = models.ForeignKey("Airport", on_delete=models.CASCADE, related_name="route_destination")
     distance = models.IntegerField()
@@ -60,7 +60,7 @@ class Airport(models.Model):
     name = models.CharField(max_length=120)
     closest_big_city = models.CharField(max_length=120)
     airport_code = models.CharField(max_length=20, unique=True)
-    geographical_coordinates = models.FloatField(validators=[MinValueValidator(0.0)])
+    geographical_coordinates = models.FloatField(validators=[MinValueValidator(0.0)]) # TODO ditch the validator
 
     class Meta:
         verbose_name = _("Airport")
@@ -89,7 +89,7 @@ class Airplane(models.Model):
         return Airplane.objects.bulk_create(airplanes)
 
 
-class Seat(models.Model):
+class Seat(models.Model): # TODO make testcase
     airplane = models.ForeignKey("Airplane", on_delete=models.CASCADE, related_name="seats_airplane")
     seat = models.SmallIntegerField(
         validators=[MinValueValidator(1)],
@@ -160,7 +160,7 @@ class Crew(models.Model):
 class Ticket(models.Model):
     flight_seat = models.ForeignKey("FlightSeat", on_delete=models.CASCADE, related_name="ticket_flight")
     order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="ticket_order")
-    price = models.FloatField(validators=[MinValueValidator(0.0)])
+    price = models.FloatField(validators=[MinValueValidator(0.0)]) # TODO make testcase
 
     class Meta:
         verbose_name = _("Ticket")
@@ -171,7 +171,7 @@ class Ticket(models.Model):
         return f"{self.flight_seat} {self.order} {self.price}"
 
 
-class TicketClass(models.Model):
+class TicketClass(models.Model): # TODO make testcase
     name = models.CharField(
         max_length=120,
         unique=True,
@@ -195,7 +195,7 @@ class Tariff(models.Model):
         verbose_name_plural = _("Tariffs")
 
     def __str__(self):
-        return f"{self.code} {self.name} {self.ticket_class}"
+        return f"Tariff code: {self.code}, Tariff name: {self.name}, Ticket class: {self.ticket_class}"
 
 
 class Order(models.Model):
