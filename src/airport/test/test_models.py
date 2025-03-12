@@ -1,8 +1,8 @@
 from django.contrib.auth import get_user_model
 from django.db import IntegrityError, transaction
-from django.test import TestCase, TransactionTestCase
+from django.test import TestCase
 
-from airport.models import Crew, Order, Tariff, TicketClass
+from airport.models import Order, Tariff, TicketClass
 
 
 class TestOrder(TestCase):
