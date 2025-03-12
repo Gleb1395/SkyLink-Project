@@ -1,15 +1,8 @@
 from django.contrib.auth import get_user_model
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 
-from airport.models import Crew, Order
-
-
-class TestCrew(TestCase):
-    def test_crew_format(self):
-        test_crew = Crew.objects.create(first_name="Test", last_name="Crew")
-        self.assertEqual(test_crew.first_name, "Test")
-        self.assertEqual(test_crew.last_name, "Crew")
-        self.assertEqual(str(test_crew), "Test Crew")
+from airport.models import Order, Tariff, TicketClass
 
 
 class TestOrder(TestCase):
@@ -24,3 +17,25 @@ class TestOrder(TestCase):
         )
         order_test = Order.objects.create(user=test_user)
         self.assertEqual(str(order_test), f"Order date: {order_test.created_at}, User:{username}")
+
+
+class TestTariff(TestCase):
+    def setUp(self):
+        self.ticket_class = TicketClass.objects.create(name="Test TicketClass")
+        self.test_code = "A"
+        self.test_name = "Test Tariff"
+        self.tariff_test = Tariff.objects.create(
+            code=self.test_code, name=self.test_name, ticket_class=self.ticket_class
+        )
+
+        self.assertEqual(
+            str(self.tariff_test),
+            f"Tariff code: {self.test_code}, "
+            f"Tariff name: {self.test_name}, "
+            f"Ticket class: {self.ticket_class.name}",
+        )
+
+    def test_tariff_uniq(self):
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                Tariff.objects.create(code=self.test_code, name=self.test_name, ticket_class=self.ticket_class)
