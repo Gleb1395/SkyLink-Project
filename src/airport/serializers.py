@@ -1,6 +1,7 @@
 from rest_framework import serializers
 
-from airport.models import Airplane, AirplaneType, Tariff, TicketClass, Seat, Order, Ticket, FlightSeat
+from airport.models import (Airplane, AirplaneType, FlightSeat, Order, Seat,
+                            Tariff, Ticket, TicketClass)
 
 
 class AirplaneTypeSerializer(serializers.ModelSerializer):
@@ -10,10 +11,7 @@ class AirplaneTypeSerializer(serializers.ModelSerializer):
 
 
 class AirplaneListRetrieveSerializer(serializers.ModelSerializer):
-    airplane_type = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field="name"
-    )
+    airplane_type = serializers.SlugRelatedField(read_only=True, slug_field="name")
 
     class Meta:
         model = Airplane
@@ -21,20 +19,12 @@ class AirplaneListRetrieveSerializer(serializers.ModelSerializer):
 
 
 class AirplaneCreateSerializer(AirplaneListRetrieveSerializer):
-    airplane_type = serializers.PrimaryKeyRelatedField(
-        queryset=AirplaneType.objects.all()
-    )
+    airplane_type = serializers.PrimaryKeyRelatedField(queryset=AirplaneType.objects.all())
 
 
 class SeatListRetrieveSerializer(serializers.ModelSerializer):
-    airplane = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field="name"
-    )
-    ticket_class = serializers.SlugRelatedField(
-        read_only=True,
-        slug_field="name"
-    )
+    airplane = serializers.SlugRelatedField(read_only=True, slug_field="name")
+    ticket_class = serializers.SlugRelatedField(read_only=True, slug_field="name")
 
     class Meta:
         model = Seat
@@ -42,12 +32,8 @@ class SeatListRetrieveSerializer(serializers.ModelSerializer):
 
 
 class SeatCreateSerializer(SeatListRetrieveSerializer):
-    airplane = serializers.PrimaryKeyRelatedField(
-        queryset=Airplane.objects.all()
-    )
-    ticket_class = serializers.PrimaryKeyRelatedField(
-        queryset=TicketClass.objects.all()
-    )
+    airplane = serializers.PrimaryKeyRelatedField(queryset=Airplane.objects.all())
+    ticket_class = serializers.PrimaryKeyRelatedField(queryset=TicketClass.objects.all())
 
 
 class OrderListRetrieveSerializer(serializers.ModelSerializer):
@@ -76,9 +62,7 @@ class TariffListRetrieveSerializer(TariffSerializer):
 
 
 class TariffCreateSerializer(TariffSerializer):
-    ticket_class = serializers.PrimaryKeyRelatedField(
-        queryset=TicketClass.objects.all()
-    )
+    ticket_class = serializers.PrimaryKeyRelatedField(queryset=TicketClass.objects.all())
 
 
 class FlightSeatSerializer(serializers.ModelSerializer):
@@ -98,9 +82,5 @@ class TicketListRetrieveSerializer(TicketSerializer):
 
 
 class TicketCreateSerializer(TicketSerializer):
-    order = serializers.PrimaryKeyRelatedField(
-        queryset=Order.objects.all()
-    )
-    flight_seat = serializers.PrimaryKeyRelatedField(
-        queryset=TicketClass.objects.all()
-    )
+    order = serializers.PrimaryKeyRelatedField(queryset=Order.objects.all())
+    flight_seat = serializers.PrimaryKeyRelatedField(queryset=TicketClass.objects.all())

@@ -1,29 +1,27 @@
 from rest_framework import mixins
 from rest_framework.viewsets import GenericViewSet
 
-from airport.models import Airplane, AirplaneType, Seat, Order, TicketClass, Tariff, Ticket
-from airport.serializers import AirplaneTypeSerializer, AirplaneListRetrieveSerializer, AirplaneCreateSerializer, \
-    SeatListRetrieveSerializer, SeatCreateSerializer, OrderListRetrieveSerializer, TariffListRetrieveSerializer, \
-    TariffCreateSerializer, TicketClassSerializer, TicketSerializer, TicketListRetrieveSerializer, \
-    TicketCreateSerializer
+from airport.models import (Airplane, AirplaneType, Order, Seat, Tariff,
+                            Ticket, TicketClass)
+from airport.serializers import (AirplaneCreateSerializer,
+                                 AirplaneListRetrieveSerializer,
+                                 AirplaneTypeSerializer,
+                                 OrderListRetrieveSerializer,
+                                 SeatCreateSerializer,
+                                 SeatListRetrieveSerializer,
+                                 TariffCreateSerializer,
+                                 TariffListRetrieveSerializer,
+                                 TicketClassSerializer, TicketCreateSerializer,
+                                 TicketListRetrieveSerializer,
+                                 TicketSerializer)
 
 
-class AirplaneTypeViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    GenericViewSet
-):
+class AirplaneTypeViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
     queryset = AirplaneType.objects.all()
     serializer_class = AirplaneTypeSerializer
 
 
-class AirplaneViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    GenericViewSet
-):
+class AirplaneViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
     queryset = Airplane.objects.all()
     serializer_class = AirplaneListRetrieveSerializer
 
@@ -33,12 +31,7 @@ class AirplaneViewSet(
         return AirplaneCreateSerializer
 
 
-class SeatViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    GenericViewSet
-):
+class SeatViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
     queryset = Seat.objects.all()
 
     def get_serializer_class(self):
@@ -47,11 +40,7 @@ class SeatViewSet(
         return SeatCreateSerializer
 
 
-class OrderViewSet(
-    mixins.ListModelMixin,
-    mixins.RetrieveModelMixin,
-    GenericViewSet
-):
+class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
     queryset = Order.objects.all()
 
     def get_serializer_class(self):
@@ -59,22 +48,12 @@ class OrderViewSet(
             return OrderListRetrieveSerializer
 
 
-class TicketClassViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    GenericViewSet
-):
+class TicketClassViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
     queryset = TicketClass.objects.all()
     serializer_class = TicketClassSerializer
 
 
-class TariffViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    GenericViewSet
-):
+class TariffViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
     queryset = Tariff.objects.all()
 
     def get_serializer_class(self):
@@ -83,16 +62,10 @@ class TariffViewSet(
         return TariffCreateSerializer
 
 
-
-class TicketViewSet(
-    mixins.ListModelMixin,
-    mixins.CreateModelMixin,
-    mixins.RetrieveModelMixin,
-    GenericViewSet
-):
+class TicketViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
     queryset = Ticket.objects.all()
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:
             return TicketListRetrieveSerializer
-        return TicketCreateSerializer # TODO Check it tomorrow
+        return TicketCreateSerializer  # TODO Check it tomorrow
