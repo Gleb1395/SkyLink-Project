@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from airport.models import (Airplane, AirplaneType, FlightSeat, Order, Seat,
-                            Tariff, Ticket, TicketClass)
+                            Tariff, Ticket, TicketClass, Airport, Route, )
 
 
 class AirplaneTypeSerializer(serializers.ModelSerializer):
@@ -68,7 +68,7 @@ class TariffCreateSerializer(TariffSerializer):
 class FlightSeatSerializer(serializers.ModelSerializer):
     class Meta:
         model = FlightSeat
-        fields = ("seat", "flight")
+        fields = ("seat", "flight")  # TODO make it tomorrow
 
 
 class TicketSerializer(serializers.ModelSerializer):
@@ -84,3 +84,35 @@ class TicketListRetrieveSerializer(TicketSerializer):
 class TicketCreateSerializer(TicketSerializer):
     order = serializers.PrimaryKeyRelatedField(queryset=Order.objects.all())
     flight_seat = serializers.PrimaryKeyRelatedField(queryset=TicketClass.objects.all())
+
+
+class AirportSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Airport
+        fields = ("name", "closest_big_city", "airport_code", "geographical_coordinates")
+
+
+class RouteSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Route
+        fields = ("source", "destination", "distance", "code_route")
+
+
+class RouteListRetrieveSerializer(RouteSerializer):
+    source = serializers.SlugRelatedField(
+        slug_field="name",
+        read_only=True,
+    )
+    destination = serializers.SlugRelatedField(
+        slug_field="name",
+        read_only=True,
+    )
+
+
+class RouteCreateSerializer(RouteSerializer):
+    source = serializers.PrimaryKeyRelatedField(
+        queryset=Airport.objects.all(),
+    )
+    destination = serializers.PrimaryKeyRelatedField(
+        queryset=Airport.objects.all(),
+    )
