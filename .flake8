@@ -1,4 +1,4 @@
 [flake8]
 max-line-length=120
-exclude=migrations, .venv
+exclude=migrations, .venv, test_data
 ignore=F401

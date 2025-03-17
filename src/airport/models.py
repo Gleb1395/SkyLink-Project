@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext as _
-from faker import Faker
 
 from airport.manager import FlightManager
 
@@ -60,7 +59,7 @@ class Airport(models.Model):
     name = models.CharField(max_length=120)
     closest_big_city = models.CharField(max_length=120)
     airport_code = models.CharField(max_length=20, unique=True)
-    geographical_coordinates = models.FloatField(validators=[MinValueValidator(0.0)])  # TODO ditch the validator
+    geographical_coordinates = models.FloatField()  # TODO ditch the validator
 
     class Meta:
         verbose_name = _("Airport")
@@ -80,13 +79,6 @@ class Airplane(models.Model):
 
     def __str__(self):
         return f"{self.name} {self.airplane_type}"
-
-    @staticmethod
-    def create_test_airplane() -> list["Airplane"]:
-        type_airplane = AirplaneType.objects.all()
-        name_airplane = ["Boeing 737", "Airbus A320", "Embraer E175", "CRJ-900", "Boeing 747-8F", "Airbus A330-200F"]
-        airplanes = [Airplane(name=name, airplane_type=random.choice(type_airplane)) for name in name_airplane]
-        return Airplane.objects.bulk_create(airplanes)
 
 
 class Seat(models.Model):  # TODO make testcase
@@ -123,7 +115,7 @@ class FlightSeat(models.Model):
 
 
 class AirplaneType(models.Model):
-    name = models.CharField(max_length=120)
+    name = models.CharField(max_length=120, unique=True)
 
     class Meta:
         verbose_name = _("Airplane Type")
@@ -131,12 +123,6 @@ class AirplaneType(models.Model):
 
     def __str__(self):
         return f"{self.name}"
-
-    @staticmethod
-    def create_airplane_type() -> list["AirplaneType"]:
-        types = ["Airliner", "Regional Jet", "Freighter"]
-        airplane_types = [AirplaneType(name=name) for name in types]
-        return AirplaneType.objects.bulk_create(airplane_types)
 
 
 class Crew(models.Model):
@@ -149,12 +135,6 @@ class Crew(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
-
-    @staticmethod
-    def create_test_crew(count: int) -> list["Crew"]:
-        fake = Faker()
-        crew_members = [Crew(first_name=fake.first_name(), last_name=fake.last_name()) for _ in range(count)]
-        return Crew.objects.bulk_create(crew_members)
 
 
 class Ticket(models.Model):
