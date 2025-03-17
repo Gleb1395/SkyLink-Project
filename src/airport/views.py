@@ -1,20 +1,24 @@
-from rest_framework import mixins
+from rest_framework import mixins, viewsets
 from rest_framework.viewsets import GenericViewSet
 
-from airport.models import (Airplane, AirplaneType, Order, Seat, Tariff,
-                            Ticket, TicketClass, Airport, Route)
+from airport.models import (Airplane, AirplaneType, Airport, Crew, Flight,
+                            FlightSeat, Order, Route, Seat, Tariff, Ticket,
+                            TicketClass)
 from airport.serializers import (AirplaneCreateSerializer,
                                  AirplaneListRetrieveSerializer,
-                                 AirplaneTypeSerializer,
-                                 OrderListRetrieveSerializer,
+                                 AirplaneTypeSerializer, AirportSerializer,
+                                 CrewSerializer, FlightCreateSerializer,
+                                 FlightListRetrieveSerializer,
+                                 FlightSeatCreateSerializer,
+                                 FlightSeatListRetrieveSerializer,
+                                 OrderSerializer, RouteCreateSerializer,
+                                 RouteListRetrieveSerializer,
                                  SeatCreateSerializer,
                                  SeatListRetrieveSerializer,
                                  TariffCreateSerializer,
                                  TariffListRetrieveSerializer,
                                  TicketClassSerializer, TicketCreateSerializer,
-                                 TicketListRetrieveSerializer,
-                                 TicketSerializer, AirportSerializer, RouteListRetrieveSerializer,
-                                 RouteCreateSerializer)
+                                 TicketListRetrieveSerializer)
 
 
 class AirplaneTypeViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
@@ -41,12 +45,9 @@ class SeatViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Retriev
         return SeatCreateSerializer
 
 
-class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
+class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, GenericViewSet):
     queryset = Order.objects.all()
-
-    def get_serializer_class(self):
-        if self.action in ["list", "retrieve"]:
-            return OrderListRetrieveSerializer
+    serializer_class = OrderSerializer
 
 
 class TicketClassViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
@@ -84,3 +85,26 @@ class RouteViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Crea
         if self.action in ["list", "retrieve"]:
             return RouteListRetrieveSerializer
         return RouteCreateSerializer
+
+
+class CrewViewSet(viewsets.ModelViewSet):
+    queryset = Crew.objects.all()
+    serializer_class = CrewSerializer
+
+
+class FlightViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, GenericViewSet):
+    queryset = Flight.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ["list", "retrieve"]:
+            return FlightListRetrieveSerializer
+        return FlightCreateSerializer
+
+
+class FlightSeatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, GenericViewSet):
+    queryset = FlightSeat.objects.all()
+
+    def get_serializer_class(self):
+        if self.action in ["list", "retrieve"]:
+            return FlightSeatListRetrieveSerializer
+        return FlightSeatCreateSerializer

@@ -1,7 +1,8 @@
 from rest_framework import serializers
 
-from airport.models import (Airplane, AirplaneType, FlightSeat, Order, Seat,
-                            Tariff, Ticket, TicketClass, Airport, Route, )
+from airport.models import (Airplane, AirplaneType, Airport, Crew, Flight,
+                            FlightSeat, Order, Route, Seat, Tariff, Ticket,
+                            TicketClass)
 
 
 class AirplaneTypeSerializer(serializers.ModelSerializer):
@@ -36,7 +37,7 @@ class SeatCreateSerializer(SeatListRetrieveSerializer):
     ticket_class = serializers.PrimaryKeyRelatedField(queryset=TicketClass.objects.all())
 
 
-class OrderListRetrieveSerializer(serializers.ModelSerializer):
+class OrderSerializer(serializers.ModelSerializer):
     class Meta:
         model = Order
         fields = ("created_at", "user")
@@ -65,25 +66,21 @@ class TariffCreateSerializer(TariffSerializer):
     ticket_class = serializers.PrimaryKeyRelatedField(queryset=TicketClass.objects.all())
 
 
-class FlightSeatSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = FlightSeat
-        fields = ("seat", "flight")  # TODO make it tomorrow
-
-
 class TicketSerializer(serializers.ModelSerializer):
+    flight_seat = serializers.PrimaryKeyRelatedField(queryset=FlightSeat.objects.all())
+
     class Meta:
         model = Ticket
         fields = ("order", "price", "flight_seat")
 
 
 class TicketListRetrieveSerializer(TicketSerializer):
-    order = OrderListRetrieveSerializer()
+    order = OrderSerializer()
 
 
 class TicketCreateSerializer(TicketSerializer):
     order = serializers.PrimaryKeyRelatedField(queryset=Order.objects.all())
-    flight_seat = serializers.PrimaryKeyRelatedField(queryset=TicketClass.objects.all())
+    flight_seat = serializers.PrimaryKeyRelatedField(queryset=FlightSeat.objects.all())
 
 
 class AirportSerializer(serializers.ModelSerializer):
@@ -116,3 +113,69 @@ class RouteCreateSerializer(RouteSerializer):
     destination = serializers.PrimaryKeyRelatedField(
         queryset=Airport.objects.all(),
     )
+
+
+class CrewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Crew
+        fields = ("first_name", "last_name")
+
+
+class FlightSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Flight
+        fields = (
+            "route",
+            "airplane",
+            "departure_time",
+            "arrival_time",
+            "status",
+        )
+
+
+class FlightListRetrieveSerializer(FlightSerializer):
+    crew = CrewSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Flight
+        fields = ("route", "airplane", "departure_time", "arrival_time", "status", "crew")
+
+
+class FlightCreateSerializer(FlightSerializer):
+    crew = serializers.PrimaryKeyRelatedField(
+        queryset=Crew.objects.all(),
+        many=True,
+        write_only=True,
+    )
+
+    class Meta:
+        model = Flight
+        fields = ("route", "airplane", "departure_time", "arrival_time", "status", "crew")
+
+    def create(self, validated_data):
+        crew_data = validated_data.pop("crew", [])
+        flight = Flight.objects.create(**validated_data)
+        flight.crew.set(crew_data)
+        return flight
+
+
+class FlightSeatListRetrieveSerializer(serializers.ModelSerializer):
+    seat = SeatListRetrieveSerializer()
+    flight = FlightListRetrieveSerializer()
+
+    class Meta:
+        model = FlightSeat
+        fields = ("seat", "flight")  # TODO make it tomorrow
+
+
+class FlightSeatCreateSerializer(serializers.ModelSerializer):
+    seat = serializers.PrimaryKeyRelatedField(
+        queryset=Seat.objects.all(),
+    )
+    flight = serializers.PrimaryKeyRelatedField(
+        queryset=Flight.objects.all(),
+    )
+
+    class Meta:
+        model = FlightSeat
+        fields = ("seat", "flight")
