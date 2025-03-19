@@ -32,7 +32,7 @@ class Flight(models.Model):  # TODO make testcase
         verbose_name_plural = _("Flights")
 
     def __str__(self):
-        return f"{self.route} {self.airplane} {self.departure_time} {self.arrival_time}"
+        return f"ID plane:{self.airplane.id} {self.route} {self.airplane}"
 
     def clean(self):
         super().clean()
@@ -49,7 +49,12 @@ class Route(models.Model):  # TODO make testcase
     class Meta:
         verbose_name = _("Route")
         verbose_name_plural = _("Routes")
-        unique_together = ("source", "destination")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source", "destination", "code_route"],
+                name="unique_route_source",
+            )
+        ]
 
     def __str__(self):
         return f"{self.source} {self.distance} {self.destination}"
@@ -98,12 +103,20 @@ class Seat(models.Model):  # TODO make testcase
         unique_together = ("airplane", "seat", "row")
 
     def __str__(self):
-        return f"Seat: {self.seat},  Row: {self.row}, Type seat: {self.seat_type}, Class: {self.ticket_class}"
+        return f"ID plane: {self.airplane.id} Seat: {self.seat},  Row: {self.row}, Type seat: {self.seat_type}, Class: {self.ticket_class}"
 
 
 class FlightSeat(models.Model):
     seat = models.ForeignKey("Seat", on_delete=models.CASCADE, related_name="flight_seats")
     flight = models.ForeignKey("Flight", on_delete=models.CASCADE, related_name="flight_seats")
+
+    def clean(self):
+        if self.seat.airplane != self.flight.airplane:
+            raise ValidationError(_("Seat seat must belong to flight seat"))
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
     class Meta:
         unique_together = ("seat", "flight")
