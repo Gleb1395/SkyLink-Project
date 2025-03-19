@@ -9,8 +9,8 @@ django.setup()
 
 from faker import Faker
 
-from airport.models import (Airplane, AirplaneType, Airport, Crew, Seat,
-                            TicketClass, Route, Flight)
+from airport.models import (Airplane, AirplaneType, Airport, Crew, Flight,
+                            Route, Seat, TicketClass)
 
 
 def create_test_crews(count: int) -> list[Crew]:
@@ -83,8 +83,8 @@ def create_tests_airport(count: int) -> None:
 
 def create_test_route(count: int) -> None:
     airports = list(Airport.objects.all())
-    source_airport = airports[:len(airports) // 2]
-    destination_airport = airports[len(airports) // 2:]
+    source_airport = airports[: len(airports) // 2]
+    destination_airport = airports[len(airports) // 2 :]
     fake = Faker()
     lists_route = []
     for _ in range(count):
@@ -117,9 +117,9 @@ def create_tests_flights(count: int) -> None:
     flights = Flight.objects.bulk_create(lists_flights)
 
     for flight in flights:
-        crew_members = random.sample(crews,
-                                     k=min(len(crews), random.randint(1, 5)))
+        crew_members = random.sample(crews, k=min(len(crews), random.randint(1, 5)))
         flight.crew.set(crew_members)
+
 
 if __name__ == "__main__":
     create_test_crews(50)

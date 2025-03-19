@@ -103,7 +103,11 @@ class Seat(models.Model):  # TODO make testcase
         unique_together = ("airplane", "seat", "row")
 
     def __str__(self):
-        return f"ID plane: {self.airplane.id} Seat: {self.seat},  Row: {self.row}, Type seat: {self.seat_type}, Class: {self.ticket_class}"
+        return (
+            f"ID plane: {self.airplane.id} "
+            f"Seat: {self.seat},  Row: {self.row}, "
+            f"Type seat: {self.seat_type}, Class: {self.ticket_class}"
+        )
 
 
 class FlightSeat(models.Model):
