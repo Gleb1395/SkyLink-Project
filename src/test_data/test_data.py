@@ -1,6 +1,7 @@
 import os
 import random
 from datetime import datetime, timedelta
+from string import ascii_uppercase
 
 import django
 
@@ -85,7 +86,7 @@ def create_test_route(count: int) -> None:
     airports = list(Airport.objects.all())
     source_airport = airports[: len(airports) // 2]
     destination_airport = airports[len(airports) // 2 :]
-    fake = Faker()
+    string = [letter for letter in ascii_uppercase]
     lists_route = []
     for _ in range(count):
         lists_route.append(
@@ -93,7 +94,7 @@ def create_test_route(count: int) -> None:
                 source=random.choice(source_airport),
                 destination=random.choice(destination_airport),
                 distance=random.randint(1, 100),
-                code_route=fake.country_code(),
+                code_route=f"{random.choice(string)}{random.randint(100, 999)}",
             )
         )
     Route.objects.bulk_create(lists_route)
@@ -122,9 +123,10 @@ def create_tests_flights(count: int) -> None:
 
 
 if __name__ == "__main__":
-    create_test_crews(50)
-    create_test_airplanes()
-    create_tests_seat_for_airplanes()
-    create_tests_airport(10)
-    create_test_route(5)
-    create_tests_flights(3)
+    # create_test_crews(50)
+    # create_test_airplanes()
+    # create_tests_seat_for_airplanes()
+    # create_tests_airport(10)
+    # create_test_route(5)
+    # create_tests_flights(3)
+    pass

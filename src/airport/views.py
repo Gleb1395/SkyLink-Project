@@ -27,13 +27,24 @@ class AirplaneTypeViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins
 
 
 class AirplaneViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
-    queryset = Airplane.objects.all()
+    queryset = Airplane.objects.all().select_related("airplane_type")
     serializer_class = AirplaneListRetrieveSerializer
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:
             return AirplaneListRetrieveSerializer
         return AirplaneCreateSerializer
+
+    def get_queryset(self):
+        name = self.request.GET.get("name")
+        airplane_type = self.request.GET.get("airplane_type")
+        queryset = self.queryset
+
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+        if airplane_type:
+            queryset = queryset.filter(airplane_type__icontains=airplane_type)
+        return queryset.distinct()
 
 
 class SeatViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):

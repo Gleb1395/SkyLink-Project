@@ -39,6 +39,17 @@ class Flight(models.Model):  # TODO make testcase
         if self.departure_time > self.arrival_time:
             raise ValidationError(_("Departure time must be earlier than Arrival time"))
 
+    @property
+    def duration(self):
+        return self.arrival_time - self.departure_time
+
+    @property
+    def formatted_duration(self):
+        duration = self.duration
+        hours, remainder = divmod(duration.total_seconds(), 3600)
+        minutes, _ = divmod(remainder, 60)
+        return f"{int(hours)}:{int(minutes)}"
+
 
 class Route(models.Model):  # TODO make testcase
     source = models.ForeignKey("Airport", on_delete=models.CASCADE, related_name="route_source")
