@@ -48,12 +48,22 @@ class AirplaneViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Ret
 
 
 class SeatViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
-    queryset = Seat.objects.all()
+    queryset = Seat.objects.all().select_related("airplane", "ticket_class", "airplane__airplane_type")
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:
             return SeatListRetrieveSerializer
         return SeatCreateSerializer
+
+    def get_queryset(self):
+        airplane = self.request.GET.get("airplane")
+        ticket_class = self.request.GET.get("ticket_class")
+        queryset = self.queryset
+        if airplane:
+            queryset = queryset.filter(airplane__name__icontains=airplane)
+        if ticket_class:
+            queryset = queryset.filter(ticket_class__name__icontains=ticket_class)
+        return queryset.distinct()
 
 
 class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, GenericViewSet):
@@ -67,21 +77,34 @@ class TicketClassViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.
 
 
 class TariffViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
-    queryset = Tariff.objects.all()
+    queryset = Tariff.objects.all().select_related("ticket_class")
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:
             return TariffListRetrieveSerializer
         return TariffCreateSerializer
 
+    def get_queryset(self):
+        ticket_class = self.request.GET.get("ticket_class")
+        code = self.request.GET.get("code")
+        name = self.request.GET.get("name")
+        queryset = self.queryset
+        if ticket_class:
+            queryset = queryset.filter(ticket_class__name__icontains=ticket_class)
+        if code:
+            queryset = queryset.filter(code__icontains=code)
+        if name:
+            queryset = queryset.filter(name__icontains=name)
+        return queryset.distinct()
+
 
 class TicketViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
-    queryset = Ticket.objects.all()
+    queryset = Ticket.objects.all().select_related("flight_seat", "order")
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:
             return TicketListRetrieveSerializer
-        return TicketCreateSerializer  # TODO Check it tomorrow
+        return TicketCreateSerializer
 
 
 class AirportViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, GenericViewSet):
@@ -90,7 +113,7 @@ class AirportViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Cr
 
 
 class RouteViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, GenericViewSet):
-    queryset = Route.objects.all()
+    queryset = Route.objects.all().select_related("source", "destination")
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:
@@ -104,7 +127,7 @@ class CrewViewSet(viewsets.ModelViewSet):
 
 
 class FlightViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, GenericViewSet):
-    queryset = Flight.objects.all()
+    queryset = Flight.objects.all().select_related("route", "airplane").prefetch_related("crew")
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:
@@ -113,7 +136,13 @@ class FlightViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Cre
 
 
 class FlightSeatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, GenericViewSet):
-    queryset = FlightSeat.objects.all()
+    queryset = FlightSeat.objects.all().select_related(
+        "seat__airplane__airplane_type",
+        "seat__ticket_class",
+        "flight__route__source",
+        "flight__route__destination",
+        "flight__airplane__airplane_type",
+    ).prefetch_related("flight__crew")
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:

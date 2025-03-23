@@ -32,7 +32,7 @@ class Flight(models.Model):  # TODO make testcase
         verbose_name_plural = _("Flights")
 
     def __str__(self):
-        return f"ID plane:{self.airplane.id} {self.route} {self.airplane}"
+        return f"ID Flight:{self.id} "
 
     def clean(self):
         super().clean()
@@ -68,21 +68,21 @@ class Route(models.Model):  # TODO make testcase
         ]
 
     def __str__(self):
-        return f"{self.source} {self.distance} {self.destination}"
+        return f"{self.id} {self.code_route}"
 
 
 class Airport(models.Model):
     name = models.CharField(max_length=120)
     closest_big_city = models.CharField(max_length=120)
     airport_code = models.CharField(max_length=20, unique=True)
-    geographical_coordinates = models.FloatField()  # TODO ditch the validator
+    geographical_coordinates = models.FloatField()
 
     class Meta:
         verbose_name = _("Airport")
         verbose_name_plural = _("Airports")
 
     def __str__(self):
-        return f"{self.name} {self.closest_big_city}"
+        return f"{self.name}"
 
 
 class Airplane(models.Model):
@@ -94,7 +94,7 @@ class Airplane(models.Model):
         verbose_name_plural = _("Airplanes")
 
     def __str__(self):
-        return f"{self.name} {self.airplane_type}"
+        return f"{self.name}"
 
 
 class Seat(models.Model):  # TODO make testcase
@@ -114,11 +114,7 @@ class Seat(models.Model):  # TODO make testcase
         unique_together = ("airplane", "seat", "row")
 
     def __str__(self):
-        return (
-            f"ID plane: {self.airplane.id} "
-            f"Seat: {self.seat},  Row: {self.row}, "
-            f"Type seat: {self.seat_type}, Class: {self.ticket_class}"
-        )
+        return f"ID {self.id}"
 
 
 class FlightSeat(models.Model):
@@ -137,9 +133,6 @@ class FlightSeat(models.Model):
         unique_together = ("seat", "flight")
         verbose_name = _("Flight Seat")
         verbose_name_plural = _("Flight Seats")
-
-    def __str__(self):
-        return f"{self.seat} {self.flight}"
 
 
 class AirplaneType(models.Model):
@@ -173,10 +166,16 @@ class Ticket(models.Model):
     class Meta:
         verbose_name = _("Ticket")
         verbose_name_plural = _("Tickets")
-        unique_together = ("flight_seat", "order")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["flight_seat",],
+                name="unique_flight_seat_order",
+            )
+        ]
 
     def __str__(self):
         return f"{self.flight_seat} {self.order} {self.price}"
+
 
 
 class TicketClass(models.Model):  # TODO make testcase
@@ -215,4 +214,4 @@ class Order(models.Model):
         verbose_name_plural = _("Orders")
 
     def __str__(self):
-        return f"Order date: {self.created_at}, User:{self.user}"
+        return f"Order date: {self.created_at}"

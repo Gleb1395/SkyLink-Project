@@ -28,7 +28,7 @@ class AirportAdmin(admin.ModelAdmin):
 
 @admin.register(Airplane)
 class AirplaneAdmin(admin.ModelAdmin):
-    list_display = ("name", "airplane_type")
+    list_display = ("id", "name", "airplane_type")
 
 
 @admin.register(Seat)
