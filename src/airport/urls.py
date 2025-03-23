@@ -11,16 +11,16 @@ router = routers.DefaultRouter()
 
 router.register("airplane-types", AirplaneTypeViewSet)
 router.register("airplanes", AirplaneViewSet)
-router.register("seats", SeatViewSet)
-router.register("orders", OrderViewSet)
-router.register("ticket-classes", TicketClassViewSet)
-router.register("tariffs", TariffViewSet)
-router.register("tickets", TicketViewSet)
-router.register("airports", AirportViewSet)
-router.register("routes", RouteViewSet)
-router.register("crews", CrewViewSet)
-router.register("flights", FlightViewSet)
-router.register("flight-seats", FlightSeatViewSet)
+router.register("seats", SeatViewSet)  # TODO Сделать фильтрацию и добавить select prefetch related
+router.register("orders", OrderViewSet)  # TODO Сделать фильтрацию и добавить select prefetch related
+router.register("ticket-classes", TicketClassViewSet)  # TODO Сделать фильтрацию и добавить select prefetch related
+router.register("tariffs", TariffViewSet)  # TODO Сделать фильтрацию и добавить select prefetch related
+router.register("tickets", TicketViewSet)  # TODO Сделать фильтрацию и добавить select prefetch related
+router.register("airports", AirportViewSet)  # TODO Сделать фильтрацию и добавить select prefetch related
+router.register("routes", RouteViewSet)  # TODO Сделать фильтрацию и добавить select prefetch related
+router.register("crews", CrewViewSet)  # TODO Сделать фильтрацию и добавить select prefetch related
+router.register("flights", FlightViewSet)  # TODO Сделать фильтрацию и добавить select prefetch related
+router.register("flight-seats", FlightSeatViewSet)  # TODO Сделать фильтрацию и добавить select prefetch related
 
 urlpatterns = [path("", include(router.urls))]
 

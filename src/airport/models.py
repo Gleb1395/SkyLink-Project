@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext as _
-from faker import Faker
 
 from airport.manager import FlightManager
 
@@ -33,12 +32,23 @@ class Flight(models.Model):  # TODO make testcase
         verbose_name_plural = _("Flights")
 
     def __str__(self):
-        return f"{self.route} {self.airplane} {self.departure_time} {self.arrival_time}"
+        return f"ID plane:{self.airplane.id} {self.route} {self.airplane}"
 
     def clean(self):
         super().clean()
         if self.departure_time > self.arrival_time:
             raise ValidationError(_("Departure time must be earlier than Arrival time"))
+
+    @property
+    def duration(self):
+        return self.arrival_time - self.departure_time
+
+    @property
+    def formatted_duration(self):
+        duration = self.duration
+        hours, remainder = divmod(duration.total_seconds(), 3600)
+        minutes, _ = divmod(remainder, 60)
+        return f"{int(hours)}:{int(minutes)}"
 
 
 class Route(models.Model):  # TODO make testcase
@@ -50,7 +60,12 @@ class Route(models.Model):  # TODO make testcase
     class Meta:
         verbose_name = _("Route")
         verbose_name_plural = _("Routes")
-        unique_together = ("source", "destination")
+        constraints = [
+            models.UniqueConstraint(
+                fields=["source", "destination", "code_route"],
+                name="unique_route_source",
+            )
+        ]
 
     def __str__(self):
         return f"{self.source} {self.distance} {self.destination}"
@@ -60,7 +75,7 @@ class Airport(models.Model):
     name = models.CharField(max_length=120)
     closest_big_city = models.CharField(max_length=120)
     airport_code = models.CharField(max_length=20, unique=True)
-    geographical_coordinates = models.FloatField(validators=[MinValueValidator(0.0)])  # TODO ditch the validator
+    geographical_coordinates = models.FloatField()  # TODO ditch the validator
 
     class Meta:
         verbose_name = _("Airport")
@@ -81,13 +96,6 @@ class Airplane(models.Model):
     def __str__(self):
         return f"{self.name} {self.airplane_type}"
 
-    @staticmethod
-    def create_test_airplane() -> list["Airplane"]:
-        type_airplane = AirplaneType.objects.all()
-        name_airplane = ["Boeing 737", "Airbus A320", "Embraer E175", "CRJ-900", "Boeing 747-8F", "Airbus A330-200F"]
-        airplanes = [Airplane(name=name, airplane_type=random.choice(type_airplane)) for name in name_airplane]
-        return Airplane.objects.bulk_create(airplanes)
-
 
 class Seat(models.Model):  # TODO make testcase
     airplane = models.ForeignKey("Airplane", on_delete=models.CASCADE, related_name="seats_airplane")
@@ -106,12 +114,24 @@ class Seat(models.Model):  # TODO make testcase
         unique_together = ("airplane", "seat", "row")
 
     def __str__(self):
-        return f"Seat: {self.seat},  Row: {self.row}, Type seat: {self.seat_type}, Class: {self.ticket_class}"
+        return (
+            f"ID plane: {self.airplane.id} "
+            f"Seat: {self.seat},  Row: {self.row}, "
+            f"Type seat: {self.seat_type}, Class: {self.ticket_class}"
+        )
 
 
 class FlightSeat(models.Model):
     seat = models.ForeignKey("Seat", on_delete=models.CASCADE, related_name="flight_seats")
     flight = models.ForeignKey("Flight", on_delete=models.CASCADE, related_name="flight_seats")
+
+    def clean(self):
+        if self.seat.airplane != self.flight.airplane:
+            raise ValidationError(_("Seat seat must belong to flight seat"))
+
+    def save(self, *args, **kwargs):
+        self.clean()
+        super().save(*args, **kwargs)
 
     class Meta:
         unique_together = ("seat", "flight")
@@ -123,7 +143,7 @@ class FlightSeat(models.Model):
 
 
 class AirplaneType(models.Model):
-    name = models.CharField(max_length=120)
+    name = models.CharField(max_length=120, unique=True)
 
     class Meta:
         verbose_name = _("Airplane Type")
@@ -131,12 +151,6 @@ class AirplaneType(models.Model):
 
     def __str__(self):
         return f"{self.name}"
-
-    @staticmethod
-    def create_airplane_type() -> list["AirplaneType"]:
-        types = ["Airliner", "Regional Jet", "Freighter"]
-        airplane_types = [AirplaneType(name=name) for name in types]
-        return AirplaneType.objects.bulk_create(airplane_types)
 
 
 class Crew(models.Model):
@@ -149,12 +163,6 @@ class Crew(models.Model):
 
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
-
-    @staticmethod
-    def create_test_crew(count: int) -> list["Crew"]:
-        fake = Faker()
-        crew_members = [Crew(first_name=fake.first_name(), last_name=fake.last_name()) for _ in range(count)]
-        return Crew.objects.bulk_create(crew_members)
 
 
 class Ticket(models.Model):

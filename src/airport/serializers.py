@@ -134,11 +134,28 @@ class FlightSerializer(serializers.ModelSerializer):
 
 
 class FlightListRetrieveSerializer(FlightSerializer):
+    route = RouteListRetrieveSerializer()
     crew = CrewSerializer(many=True, read_only=True)
+    airplane = serializers.SerializerMethodField()
+    status = serializers.SerializerMethodField()
+    formatted_duration = serializers.SerializerMethodField()
 
     class Meta:
         model = Flight
-        fields = ("route", "airplane", "departure_time", "arrival_time", "status", "crew")
+        fields = ("route", "airplane", "departure_time", "arrival_time", "status", "crew", "formatted_duration")
+
+    def get_airplane(self, obj):
+        return obj.airplane.name
+
+    def get_status(self, obj):
+        status_mapping = {1: "SCHEDULED", 2: "DELAYED", 3: "CANCELLED", 4: "COMPLETED"}
+        return status_mapping.get(obj.status, "UNKNOWN")
+
+    def get_formatted_duration(self, obj):
+        duration = obj.arrival_time - obj.departure_time
+        hours, remainder = divmod(duration.total_seconds(), 3600)
+        minutes, _ = divmod(remainder, 60)
+        return f"{int(hours)}ч {int(minutes)}м"
 
 
 class FlightCreateSerializer(FlightSerializer):
@@ -150,7 +167,14 @@ class FlightCreateSerializer(FlightSerializer):
 
     class Meta:
         model = Flight
-        fields = ("route", "airplane", "departure_time", "arrival_time", "status", "crew")
+        fields = (
+            "route",
+            "airplane",
+            "departure_time",
+            "arrival_time",
+            "status",
+            "crew",
+        )
 
     def create(self, validated_data):
         crew_data = validated_data.pop("crew", [])
@@ -165,7 +189,7 @@ class FlightSeatListRetrieveSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = FlightSeat
-        fields = ("seat", "flight")  # TODO make it tomorrow
+        fields = ("seat", "flight")
 
 
 class FlightSeatCreateSerializer(serializers.ModelSerializer):
