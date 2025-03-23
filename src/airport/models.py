@@ -168,14 +168,15 @@ class Ticket(models.Model):
         verbose_name_plural = _("Tickets")
         constraints = [
             models.UniqueConstraint(
-                fields=["flight_seat",],
+                fields=[
+                    "flight_seat",
+                ],
                 name="unique_flight_seat_order",
             )
         ]
 
     def __str__(self):
         return f"{self.flight_seat} {self.order} {self.price}"
-
 
 
 class TicketClass(models.Model):  # TODO make testcase

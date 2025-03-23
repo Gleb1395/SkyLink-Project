@@ -136,13 +136,17 @@ class FlightViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.Cre
 
 
 class FlightSeatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, GenericViewSet):
-    queryset = FlightSeat.objects.all().select_related(
-        "seat__airplane__airplane_type",
-        "seat__ticket_class",
-        "flight__route__source",
-        "flight__route__destination",
-        "flight__airplane__airplane_type",
-    ).prefetch_related("flight__crew")
+    queryset = (
+        FlightSeat.objects.all()
+        .select_related(
+            "seat__airplane__airplane_type",
+            "seat__ticket_class",
+            "flight__route__source",
+            "flight__route__destination",
+            "flight__airplane__airplane_type",
+        )
+        .prefetch_related("flight__crew")
+    )
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:

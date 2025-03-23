@@ -16,7 +16,7 @@ class TestOrder(TestCase):
             password=password,
         )
         order_test = Order.objects.create(user=test_user)
-        self.assertEqual(str(order_test), f"Order date: {order_test.created_at}, User:{username}")
+        self.assertEqual(str(order_test), f"Order date: {order_test.created_at}")
 
 
 class TestTariff(TestCase):
