@@ -1,3 +1,9 @@
+import os
+
+from django.http import FileResponse
+from django.shortcuts import render
+from django.template.loader import render_to_string
+from playwright.sync_api import sync_playwright
 from rest_framework import mixins, viewsets
 from rest_framework.viewsets import GenericViewSet
 
@@ -19,6 +25,7 @@ from airport.serializers import (AirplaneCreateSerializer,
                                  TariffListRetrieveSerializer,
                                  TicketClassSerializer, TicketCreateSerializer,
                                  TicketListRetrieveSerializer)
+from config import settings
 
 
 class AirplaneTypeViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
@@ -152,3 +159,45 @@ class FlightSeatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins
         if self.action in ["list", "retrieve"]:
             return FlightSeatListRetrieveSerializer
         return FlightSeatCreateSerializer
+
+
+def generate_ticket_pdf_by_seat(request):
+    user = request.user
+    if not user.is_authenticated:
+        from django.http import HttpResponse
+
+        return HttpResponse("Unauthorized", status=401)
+
+    tickets = Ticket.objects.filter(order__user=user).select_related(
+        "flight_seat__flight__route__source",
+        "flight_seat__flight__route__destination",
+        "flight_seat__flight",
+        "flight_seat__seat",
+        "order__user",
+        "order",
+    )
+
+    context = {"tickets": tickets}
+
+    html_string = render_to_string("index.html", context)
+
+    static_root = os.path.join(settings.BASE_DIR, "static")
+    static_url = f"file:///{static_root.replace(os.sep, '/')}"
+
+    html_string = html_string.replace('href="/static/', f'href="{static_url}/')
+    html_string = html_string.replace('src="/static/', f'src="{static_url}/')
+
+    html_path = os.path.join(settings.BASE_DIR, "ticket_preview.html")
+    with open(html_path, "w", encoding="utf-8") as f:
+        f.write(html_string)
+
+    pdf_path = os.path.join(settings.BASE_DIR, "ticket_output.pdf")
+
+    with sync_playwright() as p:
+        browser = p.chromium.launch()
+        page = browser.new_page()
+        page.goto(f"file:///{html_path}", wait_until="networkidle")
+        page.pdf(path=pdf_path, format="A4", print_background=True)
+        browser.close()
+
+    return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
