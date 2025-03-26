@@ -1,10 +1,8 @@
 import os
 
-from django.contrib.auth import get_user_model
-from django.http import FileResponse, HttpResponseForbidden
-from django.shortcuts import render
-from django.template.loader import render_to_string
-from playwright.sync_api import sync_playwright
+from django.conf import settings
+from django.core.mail import send_mail
+from django.http import HttpRequest, HttpResponse
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -28,8 +26,7 @@ from airport.serializers import (AirplaneCreateSerializer,
                                  TariffListRetrieveSerializer,
                                  TicketClassSerializer, TicketCreateSerializer,
                                  TicketListRetrieveSerializer)
-from airport.services import generate_and_send_pdf
-from config import settings
+from airport.services import generate_and_send_pdf, send_ticket_email
 
 
 class AirplaneTypeViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
@@ -166,7 +163,7 @@ class FlightSeatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins
 
 
 @api_view(["GET"])
-def send_ticket(request):
+def send_ticket(request: HttpRequest) -> HttpResponse:
     user = request.user
     if not user.is_authenticated:
         return Response({"detail": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
@@ -186,3 +183,16 @@ def send_ticket(request):
     generate_and_send_pdf(user=user, template_name=template_name, context=context)
 
     return Response({"detail": "Ticket sent successfully"}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+def send_test_email(request: HttpRequest) -> HttpResponse:
+    # send_mail(
+    #     subject="Test email",
+    #     message="Check your email",
+    #     from_email=settings.EMAIL_HOST_USER,
+    #     recipient_list=[settings.EMAIL_HOST_USER],
+    #     fail_silently=False,
+    # )
+    send_ticket_email()
+    return Response({"detail": "Test email sent"}, status=status.HTTP_200_OK)
