@@ -1,16 +1,16 @@
-{% load static %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <title>CodePen - CSS Grid: Train Ticket</title>
   <link
-      href="{% static "css/fonts.css" %}"
+      href="file:///C:/Users/Michael/Desktop/Mate/SkyLink-Project/src/static/css/fonts.css"
       rel="stylesheet">
-  <link rel="stylesheet" href="{% static "css/reset.min.css" %}">
+  <link rel="stylesheet" href="file:///C:/Users/Michael/Desktop/Mate/SkyLink-Project/src/static/css/reset.min.css">
   <link rel='stylesheet'
-        href='{% static "css/simple-line-icons.min.css" %}'>
-  <link rel="stylesheet" href="{% static "css/style.css" %}">
+        href='/static/css/simple-line-icons.min.css'>
+  <link rel="stylesheet" href="file:///C:/Users/Michael/Desktop/Mate/SkyLink-Project/src/static/css/style.css">
 
 </head>
 
@@ -18,7 +18,7 @@
 <body>
 <!-- partial:index.partial.html -->
 <div class="main-content">
-  {% for ticket in tickets %}
+  
     <div class="ticket__divider">
       <hr class="cut-line">
     </div>
@@ -27,7 +27,7 @@
         <div class="header">SkyLink-Project</div>
         <div class="info passenger">
           <div class="info__item">Passenger</div>
-          <div class="info__detail">{{ ticket.order.user.username }}</div>
+          <div class="info__detail">admin</div>
         </div>
         <div class="info platform"><span>Depart </span><span>from </span><span>platform</span>
           <div class="number">
@@ -37,27 +37,27 @@
         </div>
         <div class="info departure">
           <div class="info__item">Depart</div>
-          <div class="info__detail">{{ ticket.flight_seat.flight.route.source }}</div>
+          <div class="info__detail">Airport 1</div>
         </div>
         <div class="info arrival">
           <div class="info__item">Arrive</div>
-          <div class="info__detail">{{ ticket.flight_seat.flight.route.destination }}</div>
+          <div class="info__detail">Airport 2</div>
         </div>
         <div class="info date">
           <div class="info__item">Date</div>
-          <div class="info__detail">{{ ticket.flight_seat.flight.arrival_time|date:"j M Y" }}</div>
+          <div class="info__detail">27 Mar 2025</div>
         </div>
         <div class="info time">
           <div class="info__item">Time</div>
-          <div class="info__detail">{{ ticket.flight_seat.flight.arrival_time|date:"H:i" }}</div>
+          <div class="info__detail">12:27</div>
         </div>
         <div class="info carriage">
           <div class="info__item">car</div>
-          <div class="info__detail">{{ ticket.flight_seat.seat.row }}</div>
+          <div class="info__detail">A</div>
         </div>
         <div class="info seat">
           <div class="info__item">Seat</div>
-          <div class="info__detail">{{ ticket.flight_seat.seat.seat }}</div>
+          <div class="info__detail">1</div>
         </div>
         <div class="fineprint">
           <p>Boarding begins 30 minutes before departure. Snacks available for purchase from The Honeydukes Express.</p>
@@ -104,8 +104,7 @@
         </div>
       </div>
     </div>
-  {% endfor %}
-  <a href="{% url 'airport:generate_ticket_pdf_by_seat' %}">Скачать PDF</a>
+  
 </div>
 </body>
 </html>

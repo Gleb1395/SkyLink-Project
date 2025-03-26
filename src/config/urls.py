@@ -16,10 +16,17 @@ Including another URLconf
 """
 
 from debug_toolbar.toolbar import debug_toolbar_urls
+from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
 
-urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("api/v1/airport/", include("airport.urls", namespace="airport")),
-] + debug_toolbar_urls()
+from config import settings
+
+urlpatterns = (
+    [
+        path("admin/", admin.site.urls),
+        path("api/v1/airport/", include("airport.urls", namespace="airport")),
+    ]
+    + debug_toolbar_urls()  # NOQA W503
+    + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)  # NOQA W503
+)

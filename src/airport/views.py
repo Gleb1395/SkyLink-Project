@@ -1,10 +1,13 @@
 import os
 
-from django.http import FileResponse
+from django.contrib.auth import get_user_model
+from django.http import FileResponse, HttpResponseForbidden
 from django.shortcuts import render
 from django.template.loader import render_to_string
 from playwright.sync_api import sync_playwright
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, status, viewsets
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 from rest_framework.viewsets import GenericViewSet
 
 from airport.models import (Airplane, AirplaneType, Airport, Crew, Flight,
@@ -25,6 +28,7 @@ from airport.serializers import (AirplaneCreateSerializer,
                                  TariffListRetrieveSerializer,
                                  TicketClassSerializer, TicketCreateSerializer,
                                  TicketListRetrieveSerializer)
+from airport.services import generate_and_send_pdf
 from config import settings
 
 
@@ -161,12 +165,13 @@ class FlightSeatViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins
         return FlightSeatCreateSerializer
 
 
-def generate_ticket_pdf_by_seat(request):
+@api_view(["GET"])
+def send_ticket(request):
     user = request.user
     if not user.is_authenticated:
-        from django.http import HttpResponse
+        return Response({"detail": "Authentication required"}, status=status.HTTP_401_UNAUTHORIZED)
 
-        return HttpResponse("Unauthorized", status=401)
+    template_name = "ticket.html"
 
     tickets = Ticket.objects.filter(order__user=user).select_related(
         "flight_seat__flight__route__source",
@@ -178,26 +183,6 @@ def generate_ticket_pdf_by_seat(request):
     )
 
     context = {"tickets": tickets}
+    generate_and_send_pdf(user=user, template_name=template_name, context=context)
 
-    html_string = render_to_string("index.html", context)
-
-    static_root = os.path.join(settings.BASE_DIR, "static")
-    static_url = f"file:///{static_root.replace(os.sep, '/')}"
-
-    html_string = html_string.replace('href="/static/', f'href="{static_url}/')
-    html_string = html_string.replace('src="/static/', f'src="{static_url}/')
-
-    html_path = os.path.join(settings.BASE_DIR, "ticket_preview.html")
-    with open(html_path, "w", encoding="utf-8") as f:
-        f.write(html_string)
-
-    pdf_path = os.path.join(settings.BASE_DIR, "ticket_output.pdf")
-
-    with sync_playwright() as p:
-        browser = p.chromium.launch()
-        page = browser.new_page()
-        page.goto(f"file:///{html_path}", wait_until="networkidle")
-        page.pdf(path=pdf_path, format="A4", print_background=True)
-        browser.close()
-
-    return FileResponse(open(pdf_path, "rb"), content_type="application/pdf")
+    return Response({"detail": "Ticket sent successfully"}, status=status.HTTP_200_OK)
