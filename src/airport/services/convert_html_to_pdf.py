@@ -1,10 +1,10 @@
 import os
 import uuid
 
-from django.conf import settings
-from django.core.mail import EmailMessage
 from django.template.loader import render_to_string
 from playwright.sync_api import sync_playwright
+
+from airport.services.send_email import send_ticket_email
 
 
 def generate_and_send_pdf(user, context: dict, template_name: str) -> str:
@@ -33,17 +33,9 @@ def generate_and_send_pdf(user, context: dict, template_name: str) -> str:
         browser.close()
 
     os.remove(html_path)
+    if user.telegram_chat_id:
+        pass
+
     send_ticket_email(email=user.email, path_file=pdf_path)
 
     return pdf_path
-
-
-def send_ticket_email(email: str, path_file: str) -> None:
-    email = EmailMessage(
-        subject="Airport Ticket",
-        body="Ваш билет во вложении.",
-        from_email=settings.EMAIL_HOST_USER,
-        to=[email],
-    )
-    email.attach_file(f"{path_file}")
-    email.send()
