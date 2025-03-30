@@ -5,6 +5,8 @@ from django.template.loader import render_to_string
 from playwright.sync_api import sync_playwright
 
 from airport.services.send_email import send_ticket_email
+from airport.services.send_telegram_massage import bot
+from user.models import PendingTelegramTicket
 
 
 def generate_and_send_pdf(user, context: dict, template_name: str) -> str:
@@ -33,8 +35,15 @@ def generate_and_send_pdf(user, context: dict, template_name: str) -> str:
         browser.close()
 
     os.remove(html_path)
-    if user.telegram_chat_id:
-        pass
+
+    if getattr(user, "telegram_chat_id", None):
+        try:
+            with open(pdf_path, "rb") as pdf_file:
+                bot.send_document(user.telegram_chat_id, pdf_file, caption="Ваш билет")
+        except Exception as e:
+            print("Ошибка отправки документа через Telegram:", e)
+    else:
+        PendingTelegramTicket.objects.create(user=user, pdf_path=f"{os.path.abspath(pdf_path)}")
 
     send_ticket_email(email=user.email, path_file=pdf_path)
 

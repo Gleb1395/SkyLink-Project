@@ -1,4 +1,4 @@
-from django.contrib.auth.models import AbstractUser, UserManager
+from django.contrib.auth.models import AbstractUser, User, UserManager
 from django.db import models
 from django.utils.translation import gettext as _
 from phonenumber_field.modelfields import PhoneNumberField
@@ -63,3 +63,13 @@ class Client(AbstractUser):
     class Meta:
         verbose_name = _("client")
         verbose_name_plural = _("clients")
+
+
+class PendingTelegramTicket(models.Model):
+    user = models.ForeignKey(Client, on_delete=models.CASCADE)
+    pdf_path = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    sent = models.BooleanField(default=False)
+
+    class Meta:
+        verbose_name = _("pending telegram ticket")

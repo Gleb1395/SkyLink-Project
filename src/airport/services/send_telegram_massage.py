@@ -10,17 +10,22 @@ load_dotenv()
 
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
+from user.models import PendingTelegramTicket  # NOQA E402
+
 bot = telebot.TeleBot(os.getenv("TELEGRAM_TOKEN"))
 
 
 @bot.message_handler(commands=["start"])
 def start_handler(message):
     keyboard = types.ReplyKeyboardMarkup(one_time_keyboard=True, resize_keyboard=True)
-    button = types.KeyboardButton(text="Отправить контакт", request_contact=True)
-    keyboard.add(button)
+    button_contact = types.KeyboardButton(text="Отправить контакт", request_contact=True)
+    button_ticket = types.KeyboardButton(text="Получить билет")
+    keyboard.add(button_contact, button_ticket)
     bot.send_message(
         message.chat.id,
-        "Привет! Я бот для отправки билетов 🎫\nПоделись своим контактом, нажав кнопку ниже.",
+        "Привет! Я бот для отправки билетов 🎫\n\n"
+        "1️⃣ Нажми 'Отправить контакт', чтобы привязать свой аккаунт\n"
+        "2️⃣ Или 'Получить билет', если ты уже отправлял контакт ранее",
         reply_markup=keyboard,
     )
 
@@ -41,6 +46,31 @@ def contact_handler(message):
             bot.send_message(message.chat.id, "Пользователь с таким номером не найден.")
     else:
         bot.send_message(message.chat.id, "Контакт не получен, попробуйте снова.")
+
+
+@bot.message_handler(func=lambda message: message.text == "Получить билет")
+def get_ticket_handler(message):
+    try:
+        user = get_user_model().objects.get(telegram_chat_id=message.chat.id)
+    except get_user_model().DoesNotExist:
+        bot.send_message(message.chat.id, "Пользователь не найден. Пожалуйста, сначала отправьте свой контакт.")
+        return
+
+    pending_tickets = PendingTelegramTicket.objects.filter(user=user, sent=False)
+
+    if not pending_tickets.exists():
+        bot.send_message(message.chat.id, "У вас нет доступных билетов.")
+        return
+
+    for ticket in pending_tickets:
+        try:
+            with open(ticket.pdf_path, "rb") as pdf_file:
+                bot.send_document(message.chat.id, pdf_file, caption="Ваш билет 🎟️")
+            ticket.sent = True
+            ticket.save()
+        except Exception as e:
+            print("Ошибка отправки отложенного билета:", e)
+            bot.send_message(message.chat.id, "Произошла ошибка при отправке билета. Попробуйте позже.")
 
 
 if __name__ == "__main__":
