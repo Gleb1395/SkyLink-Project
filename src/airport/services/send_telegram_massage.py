@@ -11,13 +11,12 @@ load_dotenv()
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "config.settings")
 django.setup()
 from user.models import PendingTelegramTicket  # NOQA E402
+
 token = os.getenv("TELEGRAM_TOKEN")
 if token is None:
     token = "123456:dummy"
 
 bot = telebot.TeleBot(token)
-
-
 
 
 @bot.message_handler(commands=["start"])
