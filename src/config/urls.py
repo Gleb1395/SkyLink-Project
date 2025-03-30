@@ -19,6 +19,8 @@ from debug_toolbar.toolbar import debug_toolbar_urls
 from django.conf.urls.static import static
 from django.contrib import admin
 from django.urls import include, path
+from drf_spectacular.views import (SpectacularAPIView, SpectacularRedocView,
+                                   SpectacularSwaggerView)
 
 from config import settings
 
@@ -26,6 +28,15 @@ urlpatterns = (
     [
         path("admin/", admin.site.urls),
         path("api/v1/airport/", include("airport.urls", namespace="airport")),
+        path("api/v1/user/", include("user.urls", namespace="user")),
+        path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+        # Optional UI:
+        path("api/schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+        path("api/schema/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
+        path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
+        # Optional UI:
+        path("api/schema/swagger-ui/", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
+        path("api/schema/redoc/", SpectacularRedocView.as_view(url_name="schema"), name="redoc"),
     ]
     + debug_toolbar_urls()  # NOQA W503
     + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)  # NOQA W503
