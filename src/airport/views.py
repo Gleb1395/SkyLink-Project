@@ -1,4 +1,5 @@
 from django.http import HttpRequest, HttpResponse
+from drf_spectacular.utils import OpenApiParameter, extend_schema
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -16,9 +17,10 @@ from airport.serializers import (AirplaneCreateSerializer,
                                  FlightSeatListRetrieveSerializer,
                                  OrderSerializer, RouteCreateSerializer,
                                  RouteListRetrieveSerializer,
-                                 SeatCreateSerializer,
+                                 SeatCreateSerializer, SeatFilterSerializer,
                                  SeatListRetrieveSerializer,
                                  TariffCreateSerializer,
+                                 TariffFilterSerializer,
                                  TariffListRetrieveSerializer,
                                  TicketClassSerializer, TicketCreateSerializer,
                                  TicketListRetrieveSerializer)
@@ -27,11 +29,22 @@ from airport.services.convert_html_to_pdf import (generate_and_send_pdf,
 
 
 class AirplaneTypeViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
+    """
+    ViewSet for viewing (list, retrieve) and creating (create) airplane types.
+    """
+
     queryset = AirplaneType.objects.all()
     serializer_class = AirplaneTypeSerializer
 
 
 class AirplaneViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
+    """
+    ViewSet for displaying a list, retrieving parts and creating airplanes.
+
+    Supports filtering by airplane name (name) and airplane_type (airplane_type).
+    Uses different serializers for reading (list, retrieve) and creating (create).
+    """
+
     queryset = Airplane.objects.all().select_related("airplane_type")
     serializer_class = AirplaneListRetrieveSerializer
 
@@ -41,6 +54,7 @@ class AirplaneViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Ret
         return AirplaneCreateSerializer
 
     def get_queryset(self):
+        """Retrieve the airplanes with filters"""
         name = self.request.GET.get("name")
         airplane_type = self.request.GET.get("airplane_type")
         queryset = self.queryset
@@ -51,8 +65,24 @@ class AirplaneViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Ret
             queryset = queryset.filter(airplane_type__icontains=airplane_type)
         return queryset.distinct()
 
+    @extend_schema(
+        parameters=[
+            OpenApiParameter(name="name", type=str, description="Filter by airplane name (partial match)"),
+            OpenApiParameter(name="airplane_type", type=str, description="Filter by airplane type (partial match)"),
+        ]
+    )
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
+
 
 class SeatViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
+    """
+    ViewSet for listing, retrieving and creating seats.
+
+    Supports filtering by airplane name and ticket class name.
+    Uses different serializers for reading and creating.
+    """
+
     queryset = Seat.objects.all().select_related("airplane", "ticket_class", "airplane__airplane_type")
 
     def get_serializer_class(self):
@@ -61,6 +91,7 @@ class SeatViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Retriev
         return SeatCreateSerializer
 
     def get_queryset(self):
+        """Retrieve the seats with filters"""
         airplane = self.request.GET.get("airplane")
         ticket_class = self.request.GET.get("ticket_class")
         queryset = self.queryset
@@ -69,6 +100,10 @@ class SeatViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Retriev
         if ticket_class:
             queryset = queryset.filter(ticket_class__name__icontains=ticket_class)
         return queryset.distinct()
+
+    @extend_schema(parameters=[SeatFilterSerializer])
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class OrderViewSet(mixins.ListModelMixin, mixins.RetrieveModelMixin, mixins.CreateModelMixin, GenericViewSet):
@@ -101,6 +136,10 @@ class TariffViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Retri
         if name:
             queryset = queryset.filter(name__icontains=name)
         return queryset.distinct()
+
+    @extend_schema(parameters=[TariffFilterSerializer])
+    def list(self, request, *args, **kwargs):
+        return super().list(request, *args, **kwargs)
 
 
 class TicketViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
