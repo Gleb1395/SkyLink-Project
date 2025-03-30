@@ -13,7 +13,7 @@ django.setup()
 from user.models import PendingTelegramTicket  # NOQA E402
 token = os.getenv("TELEGRAM_TOKEN")
 if token is None:
-    token = "dummy:token"
+    token = "123456:dummy"
 
 bot = telebot.TeleBot(token)
 
