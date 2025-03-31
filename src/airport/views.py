@@ -97,6 +97,7 @@ class SeatViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Retriev
 
         airplane = self.request.GET.get("airplane")
         ticket_class = self.request.GET.get("ticket_class")
+
         queryset = self.queryset
         if airplane:
             queryset = queryset.filter(airplane__name__icontains=airplane)

@@ -1,12 +1,10 @@
-from http.client import responses
-
+from django.contrib.auth import get_user_model
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient
 
-from airport.models import (Airplane, AirplaneType, Airport, Crew, Route, Seat,
-                            Tariff, TicketClass)
+from airport.models import Airplane, AirplaneType, Seat, Tariff, TicketClass
 from airport.serializers import (AirplaneListRetrieveSerializer,
                                  SeatListRetrieveSerializer,
                                  TariffListRetrieveSerializer)
@@ -243,48 +241,100 @@ class TariffsListTest(TestCase):
         self.assertEqual(response.data, serializer.data)
 
 
-# class SeatListTest(TestCase):
-#     def setUp(self):
-#         self.client = APIClient()
-#         self._create_seats()
-#
-#     def _create_seats(self):
-#         self.airplane_type_passenger = AirplaneType.objects.create(name="Passenger Jet")
-#         self.airplane_1 = Airplane.objects.create(name="Boeing 737", airplane_type=self.airplane_type_passenger)
-#
-#         self.ticket_class_first_class = TicketClass.objects.create(name="First class")
-#
-#         self.seat_1 = Seat.objects.create(
-#             airplane=self.airplane_1, seat=1, row="A", ticket_class=self.ticket_class_first_class
-#         )
-#         self.seat_2 = Seat.objects.create(
-#             airplane=self.airplane_1, seat=2, row="A", ticket_class=self.ticket_class_first_class
-#         )
-#         self.seat_3 = Seat.objects.create(
-#             airplane=self.airplane_1, seat=3, row="A", ticket_class=self.ticket_class_first_class
-#         )
-#
-#         self.seat_4 = Seat.objects.create(
-#             airplane=self.airplane_1, seat=4, row="B", ticket_class=self.ticket_class_first_class
-#         )
-#         self.seat_5 = Seat.objects.create(
-#             airplane=self.airplane_1, seat=5, row="B", ticket_class=self.ticket_class_first_class
-#         )
-#         self.seat_6 = Seat.objects.create(
-#             airplane=self.airplane_1, seat=6, row="B", ticket_class=self.ticket_class_first_class
-#         )
-#
-#     def test_seats_list_success(self):
-#         """
-#         Test for successful retrieval of the seats list.
-#         """
-#         response = self.client.get(SEATS_URL)
-#
-#         seats = Seat.objects.all()
-#         serializer = SeatListRetrieveSerializer(seats, many=True)
-#
-#         print(response.data)
-#         print(serializer.data)
-#
-#         self.assertEqual(response.status_code, status.HTTP_200_OK)
-#         self.assertEqual(response.data, serializer.data)
+class SeatListTest(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+        self.user = get_user_model().objects.create_user(email="admin@admin.com", password="admin")
+        self.client.force_authenticate(self.user)
+
+        self._create_seats()
+
+    def _create_seats(self):
+        self.airplane_type_passenger = AirplaneType.objects.create(name="Passenger Jet")
+        self.airplane_1 = Airplane.objects.create(name="Boeing 737", airplane_type=self.airplane_type_passenger)
+
+        self.ticket_class_first_class = TicketClass.objects.create(name="First class")
+        self.ticket_class_business_class = TicketClass.objects.create(name="Business class")
+
+        self.seat_1 = Seat.objects.create(
+            airplane=self.airplane_1, seat=1, row="A", ticket_class=self.ticket_class_first_class
+        )
+
+        self.seat_2 = Seat.objects.create(
+            airplane=self.airplane_1, seat=2, row="B", ticket_class=self.ticket_class_first_class
+        )
+        self.seat_3 = Seat.objects.create(
+            airplane=self.airplane_1, seat=3, row="B", ticket_class=self.ticket_class_business_class
+        )
+
+    def test_seats_list_success_for_an_authenticated_user(self):
+        """
+        Test for successful retrieval of the seats list for authenticated user
+        """
+        response = self.client.get(SEATS_URL)
+
+        seats = Seat.objects.all()
+        serializer = SeatListRetrieveSerializer(seats, many=True)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, serializer.data)
+
+    def test_seats_list_success_for_an_unauthenticated_user(self):
+        """
+        Test for successful retrieval of the seats list for authenticated user
+        """
+        self.client.logout()
+        response = self.client.get(SEATS_URL)
+        self.assertEqual(response.status_code, status.HTTP_401_UNAUTHORIZED)
+
+    def test_seats_by_airplane(self):
+        """
+        A test of filtering by airplane
+        """
+        response = self.client.get(SEATS_URL, {"airplane": "Boeing 737"})
+        seats = Seat.objects.all().filter(airplane__name__icontains="Boeing 737")
+        serializer = SeatListRetrieveSerializer(seats, many=True)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, serializer.data)
+
+    def test_seats_by_ticket_class(self):
+        """
+        A test of filtering by ticket class
+        """
+        response = self.client.get(SEATS_URL, {"ticket_class": "Business class"})
+        seats = Seat.objects.all().filter(ticket_class__name__icontains="Business class")
+        serializer = SeatListRetrieveSerializer(seats, many=True)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, serializer.data)
+
+    def test_seats_list_empty_database(self):
+        """
+        Seats are missing from the system
+        """
+        Seat.objects.all().delete()
+        response = self.client.get(SEATS_URL)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, [])
+
+    def test_seats_filter_no_match(self):
+        """
+        Filter doesn't find a single place
+        """
+
+        response = self.client.get(SEATS_URL, {"airplane": "Unknown Plane"})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, [])
+
+    def test_seats_filter_with_unknown_query_param(self):
+        """Non-existent filter parameter‘"""
+        response = self.client.get(SEATS_URL, {"nonexistent_param": "value"})
+
+        seats = Seat.objects.all()
+        serializer = SeatListRetrieveSerializer(seats, many=True)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data, serializer.data)
