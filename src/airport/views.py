@@ -62,7 +62,7 @@ class AirplaneViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Ret
         if name:
             queryset = queryset.filter(name__icontains=name)
         if airplane_type:
-            queryset = queryset.filter(airplane_type__icontains=airplane_type)
+            queryset = queryset.filter(airplane_type__name__icontains=airplane_type)
         return queryset.distinct()
 
     @extend_schema(
