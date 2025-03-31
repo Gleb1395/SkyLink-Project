@@ -93,7 +93,6 @@ class SeatViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Retriev
         return SeatCreateSerializer
 
     def get_queryset(self):
-
         """Retrieve the seats with filters"""
 
         airplane = self.request.GET.get("airplane")
@@ -127,6 +126,7 @@ class TariffViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Retri
     Supports listing, creating and retrieving fares.
     Added filters by ticket_class, code and name via query-parameters.
     """
+
     queryset = Tariff.objects.all().select_related("ticket_class").order_by("code")
 
     def get_serializer_class(self):
