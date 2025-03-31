@@ -11,7 +11,6 @@ TARIFFS_URL = reverse("airport:tariff-list")
 SEATS_URL = reverse("airport:seat-list")
 
 
-
 class AirplanesListTest(TestCase):
     def setUp(self):
         self.client = APIClient()
@@ -92,4 +91,3 @@ class AirplanesListTest(TestCase):
         serializer = AirplaneListRetrieveSerializer(airplanes, many=True)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data, serializer.data)
-
