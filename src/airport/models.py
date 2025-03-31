@@ -9,7 +9,13 @@ from django.utils.translation import gettext as _
 from airport.manager import FlightManager
 
 
-class Flight(models.Model):  # TODO make testcase
+class Flight(models.Model):
+    """
+    Associates a route, airplane, and crew with a specific flight.
+    Stores information about departure and arrival times, flight status.
+    Contains checks for correct time and calculates flight duration.
+    """
+
     class Status(models.IntegerChoices):
         SCHEDULED = 1
         EN_ROUTE = 2
@@ -41,17 +47,29 @@ class Flight(models.Model):  # TODO make testcase
 
     @property
     def duration(self):
+        """
+        Travel time calculation
+        """
         return self.arrival_time - self.departure_time
 
     @property
     def formatted_duration(self):
+        """
+        Date Formatting
+        """
         duration = self.duration
         hours, remainder = divmod(duration.total_seconds(), 3600)
         minutes, _ = divmod(remainder, 60)
         return f"{int(hours)}:{int(minutes)}"
 
 
-class Route(models.Model):  # TODO make testcase
+class Route(models.Model):
+    """
+    Flight Route Model.
+
+    Defines a route between two airports with distance and unique route code.
+    """
+
     source = models.ForeignKey("Airport", on_delete=models.CASCADE, related_name="route_source")
     destination = models.ForeignKey("Airport", on_delete=models.CASCADE, related_name="route_destination")
     distance = models.IntegerField()
@@ -72,6 +90,12 @@ class Route(models.Model):  # TODO make testcase
 
 
 class Airport(models.Model):
+    """
+    Airport Model.
+
+    Contains information about the name, nearest major city, unique airport code and geographic coordinates.
+    """
+
     name = models.CharField(max_length=120)
     closest_big_city = models.CharField(max_length=120)
     airport_code = models.CharField(max_length=20, unique=True)
@@ -86,6 +110,12 @@ class Airport(models.Model):
 
 
 class Airplane(models.Model):
+    """
+    Airplane model.
+
+    Contains information about the aircraft name and type.
+    """
+
     name = models.CharField(max_length=120)
     airplane_type = models.ForeignKey("AirplaneType", on_delete=models.CASCADE, related_name="airplane")
 
@@ -97,7 +127,14 @@ class Airplane(models.Model):
         return f"{self.name}"
 
 
-class Seat(models.Model):  # TODO make testcase
+class Seat(models.Model):
+    """
+    An airplane seat model.
+
+    Describes a specific seat with number, row, seat type and class of service.
+    Linked to the airplane and ticket class.
+    """
+
     airplane = models.ForeignKey("Airplane", on_delete=models.CASCADE, related_name="seats_airplane")
     seat = models.SmallIntegerField(
         validators=[MinValueValidator(1)],
@@ -118,6 +155,13 @@ class Seat(models.Model):  # TODO make testcase
 
 
 class FlightSeat(models.Model):
+    """
+    Flight Seat Reservation Model.
+
+    Associates a specific seat with a specific flight.
+    Checks if the airplane matches the flight and seat.
+    """
+
     seat = models.ForeignKey("Seat", on_delete=models.CASCADE, related_name="flight_seats")
     flight = models.ForeignKey("Flight", on_delete=models.CASCADE, related_name="flight_seats")
 
@@ -136,6 +180,12 @@ class FlightSeat(models.Model):
 
 
 class AirplaneType(models.Model):
+    """
+    Airplane type model.
+
+    Stores the unique name of the aircraft type.
+    """
+
     name = models.CharField(max_length=120, unique=True)
 
     class Meta:
@@ -147,6 +197,12 @@ class AirplaneType(models.Model):
 
 
 class Crew(models.Model):
+    """
+    Crew member model.
+
+    Contains the first and last name of the crew member.
+    """
+
     first_name = models.CharField(max_length=120)
     last_name = models.CharField(max_length=120)
 
@@ -159,9 +215,15 @@ class Crew(models.Model):
 
 
 class Ticket(models.Model):
+    """
+    Ticket Model.
+
+    Associates the ticket with the seat on the flight and the order, contains the ticket price.
+    """
+
     flight_seat = models.ForeignKey("FlightSeat", on_delete=models.CASCADE, related_name="ticket_flight")
     order = models.ForeignKey("Order", on_delete=models.CASCADE, related_name="ticket_order")
-    price = models.FloatField(validators=[MinValueValidator(0.0)])  # TODO make testcase
+    price = models.FloatField(validators=[MinValueValidator(0.0)])
 
     class Meta:
         verbose_name = _("Ticket")
@@ -179,7 +241,13 @@ class Ticket(models.Model):
         return f"{self.flight_seat} {self.order} {self.price}"
 
 
-class TicketClass(models.Model):  # TODO make testcase
+class TicketClass(models.Model):
+    """
+    Ticket class model.
+
+    Defines the name and unique code of the class of service (e.g. Economy, Business).
+    """
+
     name = models.CharField(
         max_length=120,
         unique=True,
@@ -194,6 +262,12 @@ class TicketClass(models.Model):  # TODO make testcase
 
 
 class Tariff(models.Model):
+    """
+    Fare Model.
+
+    Associates a fare with a ticket class and contains its code and name.
+    """
+
     code = models.CharField(max_length=2, unique=True)
     name = models.CharField(max_length=100)
     ticket_class = models.ForeignKey("TicketClass", on_delete=models.CASCADE, related_name="tariff")
@@ -207,6 +281,12 @@ class Tariff(models.Model):
 
 
 class Order(models.Model):
+    """
+    Order Model.
+
+    Contains information about the user and the time of order creation.
+    """
+
     created_at = models.DateTimeField(auto_now_add=True)
     user = models.ForeignKey(get_user_model(), on_delete=models.CASCADE)
 

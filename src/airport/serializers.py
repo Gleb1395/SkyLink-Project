@@ -203,3 +203,13 @@ class FlightSeatCreateSerializer(serializers.ModelSerializer):
     class Meta:
         model = FlightSeat
         fields = ("seat", "flight")
+
+
+class SeatFilterSerializer(serializers.Serializer):
+    airplane = serializers.CharField(required=False, help_text="Filter by airplane name (partial match)")
+    ticket_class = serializers.CharField(required=False, help_text="Filter by ticketclass (partial match)")
+
+
+class TariffFilterSerializer(serializers.Serializer):
+    code = serializers.CharField(required=False, help_text="Filter by code tariff (partial match)")
+    name = serializers.CharField(required=False, help_text="Filter by name tariff (partial match)")
