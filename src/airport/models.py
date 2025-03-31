@@ -263,13 +263,19 @@ class TicketClass(models.Model):
 
 class Tariff(models.Model):
     """
-    Fare Model.
+    Tariff model.
 
-    Associates a fare with a ticket class and contains its code and name.
+    Represents a fare associated with a ticket class.
+
+    Attributes:
+        code (str): The designation of the tariff code (e.g., "F" ).
+        name (str): The name of the tariff (e.g., "standard tariff").
+        ticket_class (TicketClass): The ticket class to which the tariff belongs (e.g. First class).
     """
 
     code = models.CharField(max_length=2, unique=True)
     name = models.CharField(max_length=100)
+
     ticket_class = models.ForeignKey("TicketClass", on_delete=models.CASCADE, related_name="tariff")
 
     class Meta:
