@@ -8,6 +8,7 @@ from rest_framework.viewsets import GenericViewSet
 from airport.models import (Airplane, AirplaneType, Airport, Crew, Flight,
                             FlightSeat, Order, Route, Seat, Tariff, Ticket,
                             TicketClass)
+from airport.permissions import IsAdminOrIfAuthenticatedReadOnly
 from airport.serializers import (AirplaneCreateSerializer,
                                  AirplaneListRetrieveSerializer,
                                  AirplaneTypeSerializer, AirportSerializer,
@@ -84,6 +85,7 @@ class SeatViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Retriev
     """
 
     queryset = Seat.objects.all().select_related("airplane", "ticket_class", "airplane__airplane_type")
+    permission_classes = (IsAdminOrIfAuthenticatedReadOnly,)
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:
@@ -92,8 +94,10 @@ class SeatViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.Retriev
 
     def get_queryset(self):
         """Retrieve the seats with filters"""
+
         airplane = self.request.GET.get("airplane")
         ticket_class = self.request.GET.get("ticket_class")
+
         queryset = self.queryset
         if airplane:
             queryset = queryset.filter(airplane__name__icontains=airplane)
@@ -117,7 +121,14 @@ class TicketClassViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.
 
 
 class TariffViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
-    queryset = Tariff.objects.all().select_related("ticket_class")
+    """
+    ViewSet for managing tariffs.
+
+    Supports listing, creating and retrieving fares.
+    Added filters by ticket_class, code and name via query-parameters.
+    """
+
+    queryset = Tariff.objects.all().select_related("ticket_class").order_by("code")
 
     def get_serializer_class(self):
         if self.action in ["list", "retrieve"]:
