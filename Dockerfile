@@ -9,6 +9,7 @@ WORKDIR /SkyLink-Project
 
 COPY ./src ./src
 COPY ./requirements.txt ./requirements.txt
+#todo убрать env добавить в compose
 COPY ./.env ./.env
 COPY ./commands ./commands
 
