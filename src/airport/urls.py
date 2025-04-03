@@ -5,7 +5,8 @@ from airport.views import (AirplaneTypeViewSet, AirplaneViewSet,
                            AirportViewSet, CrewViewSet, FlightSeatViewSet,
                            FlightViewSet, OrderViewSet, RouteViewSet,
                            SeatViewSet, TariffViewSet, TicketClassViewSet,
-                           TicketViewSet, send_ticket)
+                           TicketViewSet, send_ticket,
+                           send_to_user_weekly_email)
 
 router = routers.DefaultRouter()
 
@@ -25,6 +26,7 @@ router.register("flight-seats", FlightSeatViewSet)
 urlpatterns = [
     path("", include(router.urls)),
     path("send-ticket/", send_ticket, name="send_ticket"),
+    path("weekly-email/", send_to_user_weekly_email, name="weekly_email"),
 ]
 
 app_name = "airport"

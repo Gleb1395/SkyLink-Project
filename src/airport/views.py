@@ -25,8 +25,8 @@ from airport.serializers import (AirplaneCreateSerializer,
                                  TariffListRetrieveSerializer,
                                  TicketClassSerializer, TicketCreateSerializer,
                                  TicketListRetrieveSerializer)
-from airport.services.convert_html_to_pdf import (generate_and_send_pdf,
-                                                  send_ticket_email)
+from airport.services.convert_html_to_pdf import generate_and_send_pdf
+from airport.tasks.mail import weekly_wish_email
 
 
 class AirplaneTypeViewSet(mixins.ListModelMixin, mixins.CreateModelMixin, mixins.RetrieveModelMixin, GenericViewSet):
@@ -230,3 +230,9 @@ def send_ticket(request: HttpRequest) -> HttpResponse:
     generate_and_send_pdf(user=user, template_name=template_name, context=context)
 
     return Response({"detail": "Ticket sent successfully"}, status=status.HTTP_200_OK)
+
+
+@api_view(["GET"])
+def send_to_user_weekly_email(request: HttpRequest) -> HttpResponse:
+    weekly_wish_email.delay()
+    return Response({"detail": "Email sent successfully"}, status=status.HTTP_200_OK)
