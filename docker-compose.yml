@@ -1,0 +1,100 @@
+version: '3'
+
+services:
+  backend:
+    build: ./
+    container_name: SkyLink-Project_container
+    working_dir: /SkyLink-Project
+    ports:
+      - "8010:8000"
+    command:
+      - ./commands/start_django_server.sh
+    volumes:
+      - ./src:/SkyLink-Project/src
+      - ./commands:/SkyLink-Project/commands
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:15.7
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_container
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5000:80"
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    depends_on:
+      - postgres
+      - backend
+
+  redis:
+    image: redis
+    env_file:
+      - .env
+    restart: on-failure
+    depends_on:
+      - backend
+
+  celery:
+    build: ./
+    container_name: celery-container
+    command:
+      - ./commands/start_celery.sh
+    restart: on-failure
+    volumes:
+      - ./src:/SkyLink-Project
+      - ./commands:/SkyLink-Project/commands
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - backend
+
+  celerybeat:
+    build: ./
+    container_name: celerybeat-container
+    command:
+      - ./commands/start_celerybeat.sh
+    restart: on-failure
+    volumes:
+      - ./src:/SkyLink-Project
+      - ./commands:/SkyLink-Project/commands
+    env_file:
+      - .env
+    depends_on:
+      - redis
+      - backend
+
+
+  flower:
+    build: ./
+    container_name: flower_container
+    volumes:
+      - ./src:/SkyLink-Project
+    command: celery -A config flower --broker=redis://redis
+    ports:
+      - "5556:5555"
+    depends_on:
+      - backend
+      - celery
+    env_file:
+      - .env
+
+
+volumes:
+  pg_data: { }
+  pgadmin: { }
