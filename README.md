@@ -1,1 +1,2 @@
-# SkyLink-Project
+# SkyLink-Project (Study project)
+**SkyLink**
