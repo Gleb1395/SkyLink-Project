@@ -14,32 +14,32 @@ services:
       - ./commands:/SkyLink-Project/commands
     env_file:
       - .env
-#    depends_on:
-#      - postgres
+    depends_on:
+      - postgres
 
-#  postgres:
-#    image: postgres:15.7
-#    restart: always
-#    ports:
-#      - "5432:5432"
-#    volumes:
-#      - pg_data:/var/lib/postgresql/data
-#    env_file:
-#      - .env
-#
-#  pgadmin:
-#    image: dpage/pgadmin4
-#    container_name: pgadmin_container
-#    restart: always
-#    env_file:
-#      - .env
-#    ports:
-#      - "5000:80"
-#    volumes:
-#      - pgadmin:/var/lib/pgadmin
-#    depends_on:
-#      - postgres
-#      - backend
+  postgres:
+    image: postgres:15.7
+    restart: always
+    ports:
+      - "5432:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    env_file:
+      - .env
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgadmin_container
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "5000:80"
+    volumes:
+      - pgadmin:/var/lib/pgadmin
+    depends_on:
+      - postgres
+      - backend
 
   redis:
     image: redis
@@ -96,5 +96,5 @@ services:
 
 
 volumes:
-#  pg_data: { }
+  pg_data: { }
   pgadmin: { }
