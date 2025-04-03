@@ -5,7 +5,8 @@ from airport.views import (AirplaneTypeViewSet, AirplaneViewSet,
                            AirportViewSet, CrewViewSet, FlightSeatViewSet,
                            FlightViewSet, OrderViewSet, RouteViewSet,
                            SeatViewSet, TariffViewSet, TicketClassViewSet,
-                           TicketViewSet, send_ticket, send_to_user_weekly_email)
+                           TicketViewSet, send_ticket,
+                           send_to_user_weekly_email)
 
 router = routers.DefaultRouter()
 

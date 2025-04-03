@@ -167,7 +167,7 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
-#GOOGLE
+# GOOGLE
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_USE_TLS = True
 EMAIL_HOST = "smtp.gmail.com"
@@ -175,7 +175,7 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
-#REST
+# REST
 REST_FRAMEWORK = {
     # YOUR SETTINGS
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
@@ -186,7 +186,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {"anon": "50/minute", "user": "70/minute"},
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
 }
-#JWT
+# JWT
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -203,7 +203,7 @@ SPECTACULAR_SETTINGS = {
     "SERVE_INCLUDE_SCHEMA": False,
 }
 
-#CELERY
+# CELERY
 CELERY_BROKER_URL = "redis://redis"
 CELERY_BROKER_BACKEND = "redis://redis"
 CELERY_RESULT_SERIALIZER = "json"
@@ -212,7 +212,6 @@ CELERY_ACCEPT_CONTENT = ["application/json"]
 CELERY_BEAT_SCHEDULE = {
     "send_email_periodic_task": {
         "task": "airport.tasks.mail.weekly_wish_email",
-        'schedule': crontab(minute=0, hour=9, day_of_week=1)
+        "schedule": crontab(minute=0, hour=9, day_of_week=1),
     }
-
 }

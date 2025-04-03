@@ -1,6 +1,6 @@
 from celery import shared_task
-from django.core.mail import send_mail
 from django.contrib.auth import get_user_model
+from django.core.mail import send_mail
 
 from config import settings
 
@@ -9,7 +9,7 @@ User = get_user_model()
 
 @shared_task
 def weekly_wish_email():
-    users = User.objects.filter(is_active=True, email__isnull=False).exclude(email='')
+    users = User.objects.filter(is_active=True, email__isnull=False).exclude(email="")
     for user in users:
         try:
             send_mail(

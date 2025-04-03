@@ -25,7 +25,7 @@ from airport.serializers import (AirplaneCreateSerializer,
                                  TariffListRetrieveSerializer,
                                  TicketClassSerializer, TicketCreateSerializer,
                                  TicketListRetrieveSerializer)
-from airport.services.convert_html_to_pdf import (generate_and_send_pdf)
+from airport.services.convert_html_to_pdf import generate_and_send_pdf
 from airport.tasks.mail import weekly_wish_email
 
 
