@@ -38,9 +38,6 @@ def start_handler(message):
 def contact_handler(message):
     if message.contact:
         phone_number = message.contact.phone_number
-        print(f"Получен телефон: {phone_number}")
-        print(f"ID chat: {message.chat.id}")
-
         try:
             user = get_user_model().objects.get(phone=phone_number)
             bot.send_message(message.chat.id, f"Спасибо, {user.email}! Ваш контакт принят.")

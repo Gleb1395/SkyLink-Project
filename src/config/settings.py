@@ -14,6 +14,7 @@ import os
 from datetime import timedelta
 from pathlib import Path
 
+from celery.schedules import crontab
 from django.conf.global_settings import STATIC_ROOT
 from dotenv import load_dotenv
 
@@ -42,6 +43,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    "django_celery_beat",
     "phonenumber_field",
     "rest_framework",
     "debug_toolbar",
@@ -98,23 +100,23 @@ if os.environ.get("GITHUB_WORKFLOW"):
     }
 
 else:
-    DATABASES = {
-        "default": {
-            "ENGINE": "django.db.backends.postgresql",
-            "NAME": os.getenv("POSTGRES_DB"),
-            "USER": os.getenv("POSTGRES_USER"),
-            "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
-            "HOST": "postgres",
-            "PORT": "5432",
-        }
-    }
-
     # DATABASES = {
     #     "default": {
-    #         "ENGINE": "django.db.backends.sqlite3",
-    #         "NAME": BASE_DIR / "db.sqlite3",
+    #         "ENGINE": "django.db.backends.postgresql",
+    #         "NAME": os.getenv("POSTGRES_DB"),
+    #         "USER": os.getenv("POSTGRES_USER"),
+    #         "PASSWORD": os.getenv("POSTGRES_PASSWORD"),
+    #         "HOST": "postgres",
+    #         "PORT": "5432",
     #     }
     # }
+
+    DATABASES = {
+        "default": {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": BASE_DIR / "db.sqlite3",
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -165,6 +167,7 @@ INTERNAL_IPS = [
     "127.0.0.1",
 ]
 
+#GOOGLE
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_USE_TLS = True
 EMAIL_HOST = "smtp.gmail.com"
@@ -172,6 +175,7 @@ EMAIL_PORT = 587
 EMAIL_HOST_USER = os.getenv("EMAIL_HOST_USER")
 EMAIL_HOST_PASSWORD = os.getenv("EMAIL_HOST_PASSWORD")
 
+#REST
 REST_FRAMEWORK = {
     # YOUR SETTINGS
     "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
@@ -182,7 +186,7 @@ REST_FRAMEWORK = {
     "DEFAULT_THROTTLE_RATES": {"anon": "50/minute", "user": "70/minute"},
     "DEFAULT_AUTHENTICATION_CLASSES": ("rest_framework_simplejwt.authentication.JWTAuthentication",),
 }
-
+#JWT
 SIMPLE_JWT = {
     "ACCESS_TOKEN_LIFETIME": timedelta(minutes=5),
     "REFRESH_TOKEN_LIFETIME": timedelta(days=1),
@@ -197,4 +201,18 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "Service for purchasing airplane tickets",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
+}
+
+#CELERY
+CELERY_BROKER_URL = "redis://redis"
+CELERY_BROKER_BACKEND = "redis://redis"
+CELERY_RESULT_SERIALIZER = "json"
+CELERY_TASK_SERIALIZER = "json"
+CELERY_ACCEPT_CONTENT = ["application/json"]
+CELERY_BEAT_SCHEDULE = {
+    "send_email_periodic_task": {
+        "task": "airport.tasks.mail.weekly_wish_email",
+        'schedule': crontab(minute=0, hour=9, day_of_week=1)
+    }
+
 }
